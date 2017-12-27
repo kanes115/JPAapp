@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+
+    function httpGet(loc, res) {
+        console.log("Sending GET... " + loc.protocol + '//' + loc.host + res);
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open( "GET", loc.protocol + '//' + loc.host + res, false ); // false for synchronous request
+        xmlHttp.send( null );
+        return JSON.parse(xmlHttp.responseText);
+    }
+
+
+    function displayCategories(){
+        var res = httpGet(window.location, '/categories');
+        var div = document.getElementById('main');
+
+        var contentS = "<h1>All suppliers</h1>";
+        contentS = "<ul class='list-group'>";
+        res.forEach(function (category) {
+            contentS += "<li>" + category.name + " <button class='btn btn-info' onclick='displayProducts(" + category.id + ", \"" + category.name + "\")'>show products</button>" + "</li>";
+        });
+
+        contentS += "</ul>";
+        div.innerHTML = contentS
+    }
+
+    function displayProducts(catID, name){
+        var res = httpGet(window.location, '/categories/' + catID + '/products');
+        var div = document.getElementById('main');
+
+        var contentS = "<h1>Products of category " + name + "</h1>";
+
+        contentS += "<ul class='list-group'>";
+        res.forEach(function (prod) {
+            contentS += "<li>" + prod.productName + " <span class='badge'>" + prod.UnitsInStock + "</span>";
+            if(prod.supplier)
+                contentS += "     supplied by " + "<a onclick='displaySupplier(" + prod.supplier.id + ", \"" + prod.supplier.name + "\")'>" + prod.supplier.name + "</a>";
+
+            contentS += "</li>";
+        });
+
+        contentS += "</ul>";
+        div.innerHTML = contentS;
+    }
+
+    function displaySupplier(id, name){
+        var prods = httpGet(window.location, '/suppliers/' + id + '/products');
+        var div = document.getElementById('main');
+
+        var contentS = "<h1>Supplier's " + name + " products</h1>";
+
+        contentS += "<ul class='list-group'>";
+        prods.forEach(function (prod) {
+            contentS += "<li>" + prod.productName + "(Units in stock: " + prod.UnitsInStock + ") ";
+            contentS += "</li>";
+        });
+
+        contentS += "</ul>";
+        div.innerHTML = contentS;
+    }
+
+    function displaySuppliers() {
+        var supps = httpGet(window.location, '/suppliers');
+        var div = document.getElementById('main');
+
+        var contentS = "<h1>All suppliers</h1>";
+
+        contentS += "<ul class='list-group'>";
+        supps.forEach(function (supp) {
+            contentS += "<li>" + supp.name + " <button style='align-self: center' class='btn btn-info' onclick='displaySupplier(" + supp.id +", \"" + supp.name + "\")'>show products</button></li>";
+        });
+
+        contentS += "</ul>";
+        div.innerHTML = contentS;
+    }
+
+    function displayCustomers(){
+        var customers = httpGet(window.location, '/customers');
+        var div = document.getElementById('main');
+
+        var contentS = "<h1>All customers</h1>";
+
+        contentS += "<ul class='list-group'>";
+        customers.forEach(function (customers) {
+            contentS += "<li>" + customers.name + " <button class='btn btn-info' onclick='displayCustomer(" + customers.id + ", \"" + customers.name + "\")'>show transactions</button></li>";
+        });
+
+        contentS += "</ul>";
+        div.innerHTML = contentS;
+    }
+
+    function displayCustomer(id, name){
+        var trans = httpGet(window.location, '/customers/' + id + '/transactions');
+        var div = document.getElementById('main');
+
+        var contentS = "<h1>Customer's " + name + " transactions</h1>";
+
+        contentS += "<ul class='list-group'>";
+        trans.forEach(function (t) {
+            contentS += "<li>transaction";
+            var prods = httpGet(window.location, '/transactions/' + t.id + '/products');
+            contentS += "<ul class='list-group'>";
+            prods.forEach(function (p) {
+                contentS += "<li>" + p.productName + "(Units ordered: " + t.quantity[String(p.prodId)] + ") ";
+                contentS += "</li>";
+            });
+            contentS += "</ul>";
+            contentS += "</li>";
+        });
+
+        contentS += "</ul>";
+        div.innerHTML = contentS;
+    }
+
+
+</script>
+
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <title>jpaAPP</title>
+</head>
+<body>
+
+    <div class="jumbotron" align="center">
+        <h1>JPA app! Hello!</h1>
+    </div>
+
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">JPA app</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a onclick="displayCategories()">Categories</a></li>
+                <li><a onclick="displayCustomers()">Customers</a></li>
+                <li><a onclick="displaySuppliers()">Suppliers</a></li>
+                <li><a href="transactionform.html">Create transaction</a></li>
+            </ul>
+
+        </div>
+    </nav>
+
+    <div id="main" align="center">
+
+    </div>
+
+
+</body>
+</html>

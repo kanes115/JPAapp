@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+        <style>
+    div {
+        padding: 15px;
+    }
+</style>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Transaction</title>
+</head>
+<body>
+    <div class="jumbotron" align="center">
+        <h1>JPA app!</h1>
+        <h2>Create transaction!</h2>
+    </div>
+
+    <div id='prods' align="center">
+
+    </div>
+
+    <input type="submit" value="Go back"
+           class='btn btn-warning' onclick="window.location='/';" />
+
+</body>
+</html>
+
+<script>
+    function httpGet(loc, res) {
+        console.log("Sending GET... " + loc.protocol + '//' + loc.host + res);
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open( "GET", loc.protocol + '//' + loc.host + res, false ); // false for synchronous request
+        xmlHttp.send( null );
+        return JSON.parse(xmlHttp.responseText);
+    }
+
+    function displayForm(){
+        var res = httpGet(window.location, '/products');
+        var div = document.getElementById('prods');
+
+        var contentS =  "<form action='/createtransaction' method='post' class='form-group'>";
+        contentS += "<input type='radio' name='ctype' value='new' onclick='handleRadioClick(this)' checked> New customer<br>";
+        contentS += "<input type='radio' name='ctype' value='old' onclick='handleRadioClick(this)'> Old customer<br><br>";
+        contentS += "<div id='newClientData'>";
+        contentS += clientData;
+        contentS += "</div>";
+        res.forEach(function (p) {
+            contentS += p.productName + "<input type='number' name='prod_" + p.prodId + "' min=0 max=" + p.UnitsInStock + " value=0 id='prod_" + p.prodId + "'></br>"
+        });
+
+        contentS += "<input class='btn btn-default' type='submit' value='Submit'>";
+        contentS += "</form>";
+        div.innerHTML = contentS
+    }
+
+    var clientData = "name: <input type='text' name='name'><br>"
+        + "street: <input type='text' name='street'><br>"
+        + "city: <input type='text' name='city'><br>"
+        + "zip code: <input type='text' name='zipcode'><br>";
+    var customers = httpGet(window.location, '/customers');
+    var clientsForm = "<h3>Customers' list:</h3></br>";
+    customers.forEach(function (c) {
+        clientsForm  += "<input type='radio' name='clients' value='" + c.id + "' checked>" + c.name + "<br>";
+    });
+
+    function handleRadioClick(radio) {
+        if(radio.value == 'new')
+            document.getElementById('newClientData').innerHTML = clientData;
+        else {
+            document.getElementById('newClientData').innerHTML = clientsForm;
+        }
+    }
+
+    window.onload = displayForm();
+
+</script>
